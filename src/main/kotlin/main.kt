@@ -68,27 +68,31 @@ class ChatService {
         chats.remove(userId)
     }
 
-    fun getChats(userId: Int): List<Chat> {
-        return chats.values.toList()
+    fun getChats(userId: Int): Sequence<Chat> {
+        return chats.values.asSequence()
     }
 
     fun getUnreadChatsCount(userId: Int): Int {
-        return chats.values.count { chat -> chat.messages.any { message -> message.senderId != userId && !message.isRead } }
+        return chats.values.count { chat ->
+            chat.messages.any { message ->
+                message.senderId != userId && !message.isRead
+            }
+        }
     }
 
-    fun getLatestMessages(userId: Int): List<String> {
-        return chats.values.map { chat ->
+    fun getLatestMessages(userId: Int): Sequence<String> {
+        return chats.values.asSequence().map { chat ->
             chat.messages.lastOrNull()?.content ?: "нет сообщений"
         }
     }
 
-    fun getMessagesFromChat(userId: Int, chatId: Int, lastMessageId: Int, count: Int): List<Message> {
+    fun getMessagesFromChat(userId: Int, chatId: Int, lastMessageId: Int, count: Int): Sequence<Message> {
         val chat = chats[chatId]
         return chat?.let {
             val messages = it.messages.dropWhile { message -> message.id <= lastMessageId }.take(count)
             messages.forEach { message -> message.isRead = true }
-            messages
-        } ?: emptyList()
+            messages.asSequence()
+        } ?: emptySequence()
     }
 
     fun createMessage(userId: Int, chatId: Int, content: String) {
